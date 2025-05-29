@@ -1,50 +1,28 @@
+<!-- index.html -->
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>我的个人博客</title>
-  <style>
-    body {
-      font-family: "Helvetica Neue", sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 2rem;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h1, h2 {
-      color: #333;
-    }
-    p, li {
-      color: #666;
-      line-height: 1.6;
-    }
-    ul {
-      padding-left: 1.5rem;
-    }
-    li {
-      margin-bottom: 0.5rem;
-    }
-  </style>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>欢迎来到我的博客 👋</h1>
-    <p>你好，我是 Shihao。这是我在 GitHub 上构建的第一个静态博客页面。</p>
-    <p>这里将记录我的学习、思考与创作，敬请期待更新！</p>
+  <h1>我的日记</h1>
 
-    <h2>我的日常动态</h2>
-    <ul id="feed">
-      <li><strong>2025-05-04：</strong>今天学会了部署 GitHub Pages，记录一下~</li>
-      <li><strong>2025-05-03：</strong>尝试写了第一个 index.html 页面。</li>
-    </ul>
-  </div>
+  <label for="date">选择日期：</label>
+  <input type="date" id="date" />
+
+  <input type="text" id="title" placeholder="标题..." />
+
+  <textarea id="content" rows="10" placeholder="写下今天的内容..."></textarea>
+
+  <button onclick="saveEntry()">保存</button>
+  <button onclick="loadEntry()">查看</button>
+
+  <h2>已保存内容：</h2>
+  <div id="output"></div>
+
+  <script src="js/main.js"></script>
 </body>
 </html>
