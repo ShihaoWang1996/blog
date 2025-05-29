@@ -104,9 +104,10 @@
       currentPage++;
 
       if (data.length < PAGE_SIZE) {
-        document.getElementById('loadMoreBtn').style.display = 'none';
+        const btn = document.getElementById('loadMoreBtn');
+        btn.innerText = '没有更多内容了';
+        btn.disabled = true;
       }
-    }
 
     function resetTimeline() {
       document.getElementById('timeline').innerHTML = '';
