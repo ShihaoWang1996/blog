@@ -40,85 +40,88 @@
   <button id="loadMoreBtn" onclick="loadMoreThoughts()">加载更多</button>
 
   <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    const supabase = createClient(
-      'https://ydutbdkvhfbuieuzakke.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkdXRiZGt2aGZidWlldXpha2tlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1MjE4ODQsImV4cCI6MjA2NDA5Nzg4NH0.AhM3X9A9wD-Jp6t3fgGTdnJWzCEVoOe4tKRMj58PjHo'
-    );
+  const supabase = createClient(
+    'https://ydutbdkvhfbuieuzakke.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkdXRiZGt2aGZidWlldXpha2tlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1MjE4ODQsImV4cCI6MjA2NDA5Nzg4NH0.AhM3X9A9wD-Jp6t3fgGTdnJWzCEVoOe4tKRMj58PjHo'
+  );
 
-    const PAGE_SIZE = 10;
-    let currentPage = 0;
+  const PAGE_SIZE = 10;
+  let currentPage = 0;
 
-    async function saveThought() {
-      const title = document.getElementById('title').value.trim();
-      const content = document.getElementById('content').value.trim();
-      const device = window.navigator.userAgent;
+  async function saveThought() {
+    const title = document.getElementById('title').value.trim();
+    const content = document.getElementById('content').value.trim();
+    const device = window.navigator.userAgent;
 
-      if (!content) return alert('内容不能为空！');
+    if (!content) return alert('内容不能为空！');
 
-      const { error } = await supabase.from('thoughts').insert([
-        { title, content, device }
-      ]);
+    const { error } = await supabase.from('thoughts').insert([
+      { title, content, device }
+    ]);
 
-      if (error) {
-        alert('保存失败：' + error.message);
-      } else {
-        document.getElementById('title').value = '';
-        document.getElementById('content').value = '';
-        resetTimeline(); // 重载最新内容
-      }
+    if (error) {
+      alert('保存失败：' + error.message);
+    } else {
+      document.getElementById('title').value = '';
+      document.getElementById('content').value = '';
+      resetTimeline(); // 重载最新内容
+    }
+  }
+
+  function renderToTimeline(data) {
+    const timeline = document.getElementById('timeline');
+
+    data.forEach(entry => {
+      const item = document.createElement('div');
+      item.className = 'entry';
+      item.innerHTML = `
+        <strong>${entry.title || '无标题'}</strong><br/>
+        <small>${new Date(entry.created_at).toLocaleString()}</small>
+        <p>${entry.content}</p>
+      `;
+      timeline.appendChild(item);
+    });
+  }
+
+  async function loadMoreThoughts() {
+    const from = currentPage * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data, error } = await supabase
+      .from('thoughts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      console.error(error);
+      return;
     }
 
-    function renderToTimeline(data) {
-      const timeline = document.getElementById('timeline');
+    renderToTimeline(data);
+    currentPage++;
 
-      data.forEach(entry => {
-        const item = document.createElement('div');
-        item.className = 'entry';
-        item.innerHTML = `
-          <strong>${entry.title || '无标题'}</strong><br/>
-          <small>${new Date(entry.created_at).toLocaleString()}</small>
-          <p>${entry.content}</p>
-        `;
-        timeline.appendChild(item);
-      });
+    if (data.length < PAGE_SIZE) {
+      const btn = document.getElementById('loadMoreBtn');
+      btn.innerText = '没有更多内容了';
+      btn.disabled = true;
     }
+  }
 
-    async function loadMoreThoughts() {
-      const from = currentPage * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
+  function resetTimeline() {
+    document.getElementById('timeline').innerHTML = '';
+    currentPage = 0;
+    document.getElementById('loadMoreBtn').innerText = '加载更多';
+    document.getElementById('loadMoreBtn').disabled = false;
+    document.getElementById('loadMoreBtn').style.display = 'block';
+    loadMoreThoughts();
+  }
 
-      const { data, error } = await supabase
-        .from('thoughts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      renderToTimeline(data);
-      currentPage++;
-
-      if (data.length < PAGE_SIZE) {
-        const btn = document.getElementById('loadMoreBtn');
-        btn.innerText = '没有更多内容了';
-        btn.disabled = true;
-      }
-
-    function resetTimeline() {
-      document.getElementById('timeline').innerHTML = '';
-      currentPage = 0;
-      document.getElementById('loadMoreBtn').style.display = 'block';
-      loadMoreThoughts();
-    }
-
-    window.onload = resetTimeline;
-    window.saveThought = saveThought;
-  </script>
+  window.onload = resetTimeline;
+  window.saveThought = saveThought;
+</script>
 
 </body>
 </html>
