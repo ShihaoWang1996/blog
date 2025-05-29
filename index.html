@@ -1,28 +1,82 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>我的个人博客</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <title>我的想法记录</title>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://ydutbdkvhfbuieuzakke.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkdXRiZGt2aGZidWlldXpha2tlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1MjE4ODQsImV4cCI6MjA2NDA5Nzg4NH0.AhM3X9A9wD-Jp6t3fgGTdnJWzCEVoOe4tKRMj58PjHo';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    async function saveThought() {
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+      const device = window.navigator.userAgent;
+
+      if (!content) return alert('内容不能为空！');
+
+      const { error } = await supabase.from('thoughts').insert([
+        { title, content, device }
+      ]);
+
+      if (error) {
+        alert('保存失败：' + error.message);
+      } else {
+        document.getElementById('title').value = '';
+        document.getElementById('content').value = '';
+        loadThoughts();
+      }
+    }
+
+    async function loadThoughts() {
+      const { data, error } = await supabase
+        .from('thoughts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      const container = document.getElementById('timeline');
+      container.innerHTML = '';
+
+      if (error) {
+        container.innerText = '加载失败：' + error.message;
+        return;
+      }
+
+      data.forEach(entry => {
+        const item = document.createElement('div');
+        item.style.border = '1px solid #ccc';
+        item.style.padding = '10px';
+        item.style.margin = '10px 0';
+        item.innerHTML = `
+          <strong>${entry.title || '无标题'}</strong><br/>
+          <small>${new Date(entry.created_at).toLocaleString()}</small>
+          <p>${entry.content}</p>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // 页面加载完毕时自动执行
+    window.onload = loadThoughts;
+    window.saveThought = saveThought;
+  </script>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
+    input, textarea { width: 100%; margin-top: 10px; padding: 8px; font-size: 14px; }
+    button { margin-top: 10px; padding: 8px 16px; font-size: 14px; }
+  </style>
 </head>
 <body>
-  <h1>我的日记</h1>
 
-  <label for="date">选择日期：</label>
-  <input type="date" id="date" />
+  <h2>记录我的想法</h2>
+  <input id="title" placeholder="标题（可选）" />
+  <textarea id="content" placeholder="写下此刻的想法..."></textarea>
+  <button onclick="saveThought()">保存</button>
 
-  <input type="text" id="title" placeholder="标题..." />
+  <h2>我的内容记录</h2>
+  <div id="timeline"></div>
 
-  <textarea id="content" rows="10" placeholder="写下今天的内容..."></textarea>
-
-  <button onclick="saveEntry()">保存</button>
-  <button onclick="loadEntry()">查看</button>
-
-  <h2>已保存内容：</h2>
-  <div id="output"></div>
-
-  <script src="js/main.js"></script>
 </body>
 </html>
